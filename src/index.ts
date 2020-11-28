@@ -1,16 +1,51 @@
 import * as core from "@actions/core";
-import got, { Got } from "got";
-import { CookieJar } from "tough-cookie";
-import TelegramBot from "node-telegram-bot-api";
-import { LoginForm, DailyReportForm, DailyReportResponse } from "./form";
-import { sleep, randomBetween } from "./utils";
+import got, {Got} from "got";
+import {CookieJar} from "tough-cookie";
+import {LoginForm, DailyReportForm, DailyReportResponse} from "./form";
+import {sleep, randomBetween} from "./utils";
+import * as commander from "commander";
 
+// for BUPT
 const PREFIX_URL = "https://app.bupt.edu.cn";
 const LOGIN = "uc/wap/login/check";
 const GET_REPORT = "ncov/wap/default/index";
 const POST_REPORT = "ncov/wap/default/save";
 const RETRY = 100;
 const TIMEOUT = 2000;
+
+const program = commander.program
+    .version('0.0.1')
+    .option('-u, --user [value]', 'BUPT username')
+    .option('-p, --pass [value]', 'BUPT password')
+    .option('-s, --server [value]', 'ServerJ push key')
+    .parse(process.argv);
+
+// for ServerJ
+const serverJ = program.server;
+
+// for user
+const USER = program.user;
+const PASS = program.pass;
+
+// console.log(program.user)
+// console.log(program.pass)
+// console.log(program.server)
+
+async function sendNotify(text: string): Promise<void> {
+    await got.post(`https://sc.ftqq.com/${serverJ}.send`, {
+        form: {
+            text: '疫情防控上报成功' + new Date().toLocaleDateString(),
+            desp: text
+        },
+        responseType: 'json'
+    }).then(res => {
+        console.log(res.body)
+    }).catch((err) => {
+        console.log(err)
+    });
+}
+
+// sendNotify('asd', 'asd')
 
 async function login(
     loginForm: LoginForm
@@ -23,7 +58,7 @@ async function login(
         timeout: TIMEOUT,
     });
 
-    const response = await client.post(LOGIN, { form: loginForm });
+    const response = await client.post(LOGIN, {form: loginForm});
     if (response.statusCode != 200) {
         throw new Error(`login 请求返回了 ${response.statusCode}`);
     }
@@ -93,21 +128,21 @@ async function postDailyReportFormData(
     client: Got,
     formData: DailyReportForm
 ): Promise<DailyReportResponse> {
-    const response = await client.post(POST_REPORT, { form: formData });
+    const response = await client.post(POST_REPORT, {form: formData});
     if (response.statusCode != 200) {
         throw new Error(`postFormData 请求返回了 ${response.statusCode}`);
     }
     return JSON.parse(response.body);
 }
 
-(async (): Promise<void> => {
+async function main(): Promise<void> {
     const loginForm: LoginForm = {
-        username: process.env["BUPT_USERNAME"],
-        password: process.env["BUPT_PASSWORD"]
+        username: USER,
+        password: PASS
     }
 
     if (!(!!loginForm.username && !!loginForm.password)) {
-        throw new Error("无法登录；请在仓库 Settings 的 Secrets 栏填写 BUPT_USERNAME 与 BUPT_PASSWORD");
+        throw new Error("无法登录；请填写用户名和密码");
     }
 
     console.log("用户登录中");
@@ -128,29 +163,16 @@ async function postDailyReportFormData(
 
     console.log(`今日填报结果：${reportReponse.m}`);
 
-    const chatId = process.env["TG_CHAT_ID"];
-    const botToken = process.env["TG_BOT_TOKEN"];
-
-    if (!!chatId && !!botToken && reportReponse.m !== "今天已经填报了") {
-        const bot = new TelegramBot(botToken);
-        await bot.sendMessage(
-            chatId,
-            `今日填报结果：${reportReponse.m}`,
-            { "parse_mode": "Markdown" }
-        );
+    if (!!serverJ) {
+        await sendNotify('今日填报结果' + reportReponse.m)
     }
-})().catch(err => {
-    const chatId = process.env["TG_CHAT_ID"];
-    const botToken = process.env["TG_BOT_TOKEN"];
+}
 
-    if (!!chatId && !!botToken && err instanceof Error) {
-        const bot = new TelegramBot(botToken);
-        bot.sendMessage(
-            chatId,
-            `填报失败：\`${err.message}\``,
-            { "parse_mode": "Markdown" }
-        );
-        console.log(err);
+main().catch(err => {
+    if (!!serverJ && err instanceof Error) {
+        sendNotify('今日填报结果，填报失败，报错信息：' + err.message).then(() => {
+            console.log(err);
+        });
     } else {
         throw err;
     }
