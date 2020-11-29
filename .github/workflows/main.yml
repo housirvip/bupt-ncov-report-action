@@ -2,7 +2,7 @@ name: Automatically submit the 2019-nCoV report sheet of BUPT
 
 on:
   schedule:
-    - cron: "0/10 0 * * *"
+    - cron: "10 22/23 * * *"
   push:
 
 jobs:
@@ -31,5 +31,4 @@ jobs:
         env:
           BUPT_USERNAME: ${{ secrets.BUPT_USERNAME }}
           BUPT_PASSWORD: ${{ secrets.BUPT_PASSWORD }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          SERVER_CHAN: ${{ secrets.SERVER_CHAN }}

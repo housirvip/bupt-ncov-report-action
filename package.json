@@ -1,10 +1,10 @@
 {
   "name": "bupt-ncov-report-action",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Automatically submit the 2019-nCoV report sheet of BUPT using GitHub Actions",
   "repository": {
     "type": "git",
-    "url": "https://github.com/imtsuki/bupt-ncov-report-action"
+    "url": "https://github.com/housirvip/bupt-ncov-report-action"
   },
   "author": "imtsuki",
   "license": "MIT",

@@ -21,11 +21,11 @@ const program = commander.program
     .parse(process.argv);
 
 // for ServerJ
-const serverJ = program.server;
+const serverJ = program.server || process.env.SERVER_CHAN;
 
 // for user
-const USER = program.user;
-const PASS = program.pass;
+const USER = program.user || process.env.BUPT_USERNAME;
+const PASS = program.pass || process.env.BUPT_PASSWORD;
 
 // console.log(program.user)
 // console.log(program.pass)
