@@ -31,10 +31,10 @@ const PASS = program.pass || process.env.BUPT_PASSWORD;
 // console.log(program.pass)
 // console.log(program.server)
 
-async function sendNotify(text: string): Promise<void> {
+async function sendNotify(title: string, text: string): Promise<void> {
     await got.post(`https://sc.ftqq.com/${serverJ}.send`, {
         form: {
-            text: '疫情防控上报成功' + new Date().toLocaleDateString(),
+            text: '疫情防控:' + title + new Date().toLocaleDateString(),
             desp: text
         },
         responseType: 'json'
@@ -164,13 +164,13 @@ async function main(): Promise<void> {
     console.log(`今日填报结果：${reportReponse.m}`);
 
     if (!!serverJ) {
-        await sendNotify('今日填报结果' + reportReponse.m)
+        await sendNotify(reportReponse.m, '今日填报结果' + reportReponse.m)
     }
 }
 
 main().catch(err => {
     if (!!serverJ && err instanceof Error) {
-        sendNotify('今日填报结果，填报失败，报错信息：' + err.message).then(() => {
+        sendNotify('失败', '今日填报结果，填报失败，报错信息：' + err.message).then(() => {
             console.log(err);
         });
     } else {
