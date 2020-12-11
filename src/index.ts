@@ -11,7 +11,7 @@ const LOGIN = "uc/wap/login/check";
 const GET_REPORT = "ncov/wap/default/index";
 const POST_REPORT = "ncov/wap/default/save";
 const RETRY = 100;
-const TIMEOUT = 5000;
+const TIMEOUT = 9000;
 
 const program = commander.program
     .version('0.0.1')
